@@ -96,7 +96,7 @@ static void main_window_unload(Window *window) {
 
 void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   // every 30 minutes, request new weather data
-  if(!dynamicSettings.disableWeather) {
+  if(!dynamicSettings.disableWeather || !dynamicSettings.disableHomeAssistant) {
     if(tick_time->tm_min == weatherRefreshMinute && tick_time->tm_sec == 0) {
       messaging_requestNewWeatherData();
     }
@@ -137,7 +137,8 @@ void bluetoothStateChanged(bool newConnectionState) {
   }
 
   // if the phone was disconnected and isn't anymore, update the data
-  if(!isPhoneConnected && newConnectionState && !dynamicSettings.disableWeather) {
+  if(!isPhoneConnected && newConnectionState &&
+     (!dynamicSettings.disableWeather || !dynamicSettings.disableHomeAssistant)) {
     messaging_requestNewWeatherData();
   }
 

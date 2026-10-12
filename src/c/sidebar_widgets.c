@@ -74,6 +74,8 @@ char currentWeekNum[5];
 char currentSecondsNum[5];
 char altClock[8];
 char currentBeats[5];
+static char homeAssistantLabels[3][8] = {"", "", ""};
+static char homeAssistantValues[3][12] = {"...", "...", "..."};
 
 // the widgets
 SidebarWidget batteryMeterWidget;
@@ -119,6 +121,12 @@ void Beats_draw(GContext *ctx, int yPosition);
 SidebarWidget uvIndexWidget;
 int UVIndex_getHeight();
 void UVIndex_draw(GContext *ctx, int yPosition);
+
+SidebarWidget homeAssistantWidgets[3];
+int HomeAssistant_getHeight();
+void HomeAssistant1_draw(GContext *ctx, int yPosition);
+void HomeAssistant2_draw(GContext *ctx, int yPosition);
+void HomeAssistant3_draw(GContext *ctx, int yPosition);
 
 #ifdef PBL_HEALTH
 GDrawCommandImage *sleepImage;
@@ -202,6 +210,13 @@ void SidebarWidgets_init() {
 
   uvIndexWidget.getHeight = UVIndex_getHeight;
   uvIndexWidget.draw = UVIndex_draw;
+
+  for (int i = 0; i < 3; i++) {
+    homeAssistantWidgets[i].getHeight = HomeAssistant_getHeight;
+  }
+  homeAssistantWidgets[0].draw = HomeAssistant1_draw;
+  homeAssistantWidgets[1].draw = HomeAssistant2_draw;
+  homeAssistantWidgets[2].draw = HomeAssistant3_draw;
 
 #ifdef PBL_HEALTH
   stepCounterWidget.getHeight = StepCounter_getHeight;
@@ -502,6 +517,12 @@ SidebarWidget getSidebarWidgetByType(SidebarWidgetType type) {
     return weekNumberWidget;
   case WEATHER_UV_INDEX:
     return uvIndexWidget;
+  case HOME_ASSISTANT_ENTITY_1:
+    return homeAssistantWidgets[0];
+  case HOME_ASSISTANT_ENTITY_2:
+    return homeAssistantWidgets[1];
+  case HOME_ASSISTANT_ENTITY_3:
+    return homeAssistantWidgets[2];
 #ifdef PBL_HEALTH
   case STEP_COUNTER:
     return stepCounterWidget;
@@ -522,6 +543,17 @@ SidebarWidget getSidebarWidgetByType(SidebarWidgetType type) {
 int EmptyWidget_getHeight() { return 0; }
 
 void EmptyWidget_draw(GContext *ctx, int yPosition) { return; }
+
+void SidebarWidgets_setHomeAssistantData(int slot, const char *label,
+                                         const char *value) {
+  if (slot < 0 || slot > 2) {
+    return;
+  }
+  snprintf(homeAssistantLabels[slot], sizeof(homeAssistantLabels[slot]), "%s",
+           label ? label : "");
+  snprintf(homeAssistantValues[slot], sizeof(homeAssistantValues[slot]), "%s",
+           value ? value : "...");
+}
 
 /********** functions for the battery meter widget **********/
 
@@ -748,6 +780,56 @@ static void draw_basic_widget(GContext *ctx, int yPosition, const char *label,
                      GRect(layout.textRectX + SidebarWidgets_xOffset,
                            yPosition + valueYOffset, layout.textRectWidth, 20),
                      GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+}
+
+/********** Home Assistant entity widgets **********/
+
+int HomeAssistant_getHeight() { return layout.basicWidgetHeight; }
+
+static void HomeAssistant_draw(GContext *ctx, int yPosition, int slot) {
+  graphics_context_set_text_color(ctx, settings.sidebarTextColor);
+  if (homeAssistantLabels[slot][0] != '\0') {
+    draw_basic_widget(ctx, yPosition, homeAssistantLabels[slot],
+                      homeAssistantValues[slot], layout.basicWidgetY);
+    return;
+  }
+
+  // A tiny smart-home glyph is the default; a configured label replaces it.
+  int centerX = layout.textRectX + SidebarWidgets_xOffset +
+                layout.textRectWidth / 2;
+  int top = yPosition + 1;
+  graphics_context_set_stroke_color(ctx, settings.sidebarTextColor);
+  graphics_context_set_fill_color(ctx, settings.sidebarTextColor);
+  graphics_draw_line(ctx, GPoint(centerX - 6, top + 5),
+                     GPoint(centerX, top));
+  graphics_draw_line(ctx, GPoint(centerX, top),
+                     GPoint(centerX + 6, top + 5));
+  graphics_draw_line(ctx, GPoint(centerX - 5, top + 5),
+                     GPoint(centerX - 5, top + 11));
+  graphics_draw_line(ctx, GPoint(centerX + 5, top + 5),
+                     GPoint(centerX + 5, top + 11));
+  graphics_draw_line(ctx, GPoint(centerX - 5, top + 11),
+                     GPoint(centerX + 5, top + 11));
+  graphics_fill_circle(ctx, GPoint(centerX, top + 6), 1);
+  graphics_fill_circle(ctx, GPoint(centerX - 3, top + 9), 1);
+  graphics_fill_circle(ctx, GPoint(centerX + 3, top + 9), 1);
+  graphics_draw_text(ctx, homeAssistantValues[slot], currentSidebarFont,
+                     GRect(layout.textRectX + SidebarWidgets_xOffset,
+                           yPosition + layout.basicWidgetY,
+                           layout.textRectWidth, 20),
+                     GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+}
+
+void HomeAssistant1_draw(GContext *ctx, int yPosition) {
+  HomeAssistant_draw(ctx, yPosition, 0);
+}
+
+void HomeAssistant2_draw(GContext *ctx, int yPosition) {
+  HomeAssistant_draw(ctx, yPosition, 1);
+}
+
+void HomeAssistant3_draw(GContext *ctx, int yPosition) {
+  HomeAssistant_draw(ctx, yPosition, 2);
 }
 
 /***** Week Number Widget *****/

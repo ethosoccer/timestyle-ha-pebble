@@ -1,9 +1,10 @@
 
 var weather = require('./weather');
+var homeAssistant = require('./home_assistant');
 
-var CONFIG_VERSION = 9;
+var CONFIG_VERSION = 10;
 // var BASE_CONFIG_URL = 'http://localhost:3001/';
-var BASE_CONFIG_URL = 'http://freakified.github.io/TimeStylePebble/';
+var BASE_CONFIG_URL = 'https://ethosoccer.github.io/timestyle-ha-pebble/';
 
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready',
@@ -15,11 +16,17 @@ Pebble.addEventListener('ready',
       window.localStorage.setItem('disable_weather', 'no');
     }
 
+    // Home Assistant stays dormant until at least one HA widget is selected.
+    if (window.localStorage.getItem('disable_home_assistant') === null) {
+      window.localStorage.setItem('disable_home_assistant', 'yes');
+    }
+
     console.log('the wdisabled value is: "' + window.localStorage.getItem('disable_weather') + '"');
     // if applicable, get the weather data
     if (window.localStorage.getItem('disable_weather') != 'yes') {
       weather.updateWeather();
     }
+    homeAssistant.update();
   }
 );
 
@@ -30,6 +37,7 @@ Pebble.addEventListener('appmessage',
     console.log('Recieved message: ' + JSON.stringify(msg.payload));
 
     weather.updateWeather();
+    homeAssistant.update();
   }
 );
 
@@ -225,6 +233,20 @@ Pebble.addEventListener('webviewclosed', function (e) {
       dict.SettingDecimalSep = configData.decimal_separator;
     }
 
+    // Home Assistant credentials stay in the Pebble phone app's local storage.
+    if (configData.ha_url !== undefined) {
+      window.localStorage.setItem('ha_url', configData.ha_url);
+    }
+    if (configData.ha_token !== undefined && configData.ha_token !== '') {
+      window.localStorage.setItem('ha_token', configData.ha_token);
+    }
+    for (var haSlot = 0; haSlot < 3; haSlot++) {
+      if (configData['ha_entity_' + haSlot + '_id'] !== undefined) {
+        window.localStorage.setItem('ha_entity_' + haSlot + '_id', configData['ha_entity_' + haSlot + '_id']);
+        window.localStorage.setItem('ha_entity_' + haSlot + '_label', configData['ha_entity_' + haSlot + '_label'] || '');
+      }
+    }
+
     if (configData.health_use_distance) {
       if (configData.health_use_distance == 'yes') {
         dict.SettingHealthUseDistance = 1;
@@ -256,6 +278,10 @@ Pebble.addEventListener('webviewclosed', function (e) {
 
     window.localStorage.setItem('disable_weather', disableWeather);
 
+    var hasHomeAssistantWidget = widgetIDs.indexOf(14) != -1 ||
+      widgetIDs.indexOf(15) != -1 || widgetIDs.indexOf(16) != -1;
+    window.localStorage.setItem('disable_home_assistant', hasHomeAssistantWidget ? 'no' : 'yes');
+
     console.log('Preparing message: ', JSON.stringify(dict));
 
     // Send settings to Pebble watchapp
@@ -264,6 +290,7 @@ Pebble.addEventListener('webviewclosed', function (e) {
 
       // after sending config data, force a weather refresh in case that changed
       weather.updateWeather(true);
+      homeAssistant.update();
     }, function () {
       console.log('Failed to send config data!');
     });

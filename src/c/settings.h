@@ -68,6 +68,7 @@ typedef struct {
   bool enableAutoBatteryWidget;
   bool enableBeats;
   bool enableAltTimeZone;
+  bool disableHomeAssistant;
   
   GColor iconFillColor;
   GColor iconStrokeColor;

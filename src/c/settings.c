@@ -93,6 +93,7 @@ void Settings_updateDynamicSettings() {
   dynamicSettings.enableAutoBatteryWidget = true;
   dynamicSettings.enableBeats = false;
   dynamicSettings.enableAltTimeZone = false;
+  dynamicSettings.disableHomeAssistant = true;
 
   for (int i = 0; i < 3; i++) {
     // if there are any weather widgets, enable weather checking
@@ -120,6 +121,12 @@ void Settings_updateDynamicSettings() {
     // if any widget is "alt_time_zone", enable the alternative time calculation
     if (settings.widgets[i] == ALT_TIME_ZONE) {
       dynamicSettings.enableAltTimeZone = true;
+    }
+
+    if (settings.widgets[i] == HOME_ASSISTANT_ENTITY_1 ||
+        settings.widgets[i] == HOME_ASSISTANT_ENTITY_2 ||
+        settings.widgets[i] == HOME_ASSISTANT_ENTITY_3) {
+      dynamicSettings.disableHomeAssistant = false;
     }
   }
 

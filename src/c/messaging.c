@@ -2,6 +2,7 @@
 #include "weather.h"
 #include "settings.h"
 #include "messaging.h"
+#include "sidebar_widgets.h"
 
 void (*message_processed_callback)(void);
 
@@ -32,6 +33,22 @@ void messaging_init(void (*processed_callback)(void)) {
 
 void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   bool weatherDataUpdated = false;
+
+  const uint32_t haLabelKeys[3] = {
+      MESSAGE_KEY_HomeAssistantLabel1, MESSAGE_KEY_HomeAssistantLabel2,
+      MESSAGE_KEY_HomeAssistantLabel3};
+  const uint32_t haValueKeys[3] = {
+      MESSAGE_KEY_HomeAssistantValue1, MESSAGE_KEY_HomeAssistantValue2,
+      MESSAGE_KEY_HomeAssistantValue3};
+  for (int i = 0; i < 3; i++) {
+    Tuple *labelTuple = dict_find(iterator, haLabelKeys[i]);
+    Tuple *valueTuple = dict_find(iterator, haValueKeys[i]);
+    if (labelTuple != NULL || valueTuple != NULL) {
+      const char *label = labelTuple != NULL ? labelTuple->value->cstring : NULL;
+      const char *value = valueTuple != NULL ? valueTuple->value->cstring : NULL;
+      SidebarWidgets_setHomeAssistantData(i, label, value);
+    }
+  }
 
   // does this message contain current weather conditions?
   Tuple *weatherTemp_tuple = dict_find(iterator, MESSAGE_KEY_WeatherTemperature);

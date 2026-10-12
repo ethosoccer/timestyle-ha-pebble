@@ -1,7 +1,7 @@
 {
-  "name": "timestyle-pebble",
-  "author": "Freakified",
-  "version": "7.11.2",
+  "name": "timestyle-ha-pebble",
+  "author": "ethosoccer",
+  "version": "1.0.0",
   "keywords": [
     "pebble-watchface"
   ],
@@ -10,8 +10,8 @@
     "pebble-fctx": "^1.6.5"
   },
   "pebble": {
-    "displayName": "TimeStyle",
-    "uuid": "4368ffa4-f0fb-4823-90be-f754b076bdaa",
+    "displayName": "TimeStyle HA",
+    "uuid": "bbf93ad1-7251-4cbb-9cd0-c0f8d5082606",
     "sdkVersion": "3",
     "enableMultiJS": true,
     "targetPlatforms": [
@@ -40,6 +40,12 @@
       "WeatherForecastHighTemp",
       "WeatherForecastLowTemp",
       "WeatherUVIndex",
+      "HomeAssistantLabel1",
+      "HomeAssistantValue1",
+      "HomeAssistantLabel2",
+      "HomeAssistantValue2",
+      "HomeAssistantLabel3",
+      "HomeAssistantValue3",
       "SettingAltClockName",
       "SettingAltClockOffset",
       "SettingDisableAutobattery",

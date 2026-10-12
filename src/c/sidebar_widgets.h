@@ -32,7 +32,10 @@ typedef enum {
   STEP_COUNTER              = 10,
   BEATS                     = 11,
   HEARTRATE                 = 12,
-  WEATHER_UV_INDEX          = 13
+  WEATHER_UV_INDEX          = 13,
+  HOME_ASSISTANT_ENTITY_1   = 14,
+  HOME_ASSISTANT_ENTITY_2   = 15,
+  HOME_ASSISTANT_ENTITY_3   = 16
 } SidebarWidgetType;
 
 typedef struct {
@@ -53,3 +56,5 @@ void SidebarWidgets_deinit();
 SidebarWidget getSidebarWidgetByType(SidebarWidgetType type);
 void SidebarWidgets_updateFonts();
 void SidebarWidgets_updateTime(struct tm* timeInfo);
+void SidebarWidgets_setHomeAssistantData(int slot, const char *label,
+                                         const char *value);
