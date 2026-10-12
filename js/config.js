@@ -1,4 +1,4 @@
-var CURRENT_SETTINGS_VERSION = 9;
+var CURRENT_SETTINGS_VERSION = 10;
 
 // if we have any persistent data saved, load it in
 $(document).ready(function() {
@@ -79,6 +79,15 @@ function loadPreviousSettings() {
       health_use_restful_sleep: 'no',
       decimal_separator: '.',
 
+      // Home Assistant widget settings
+      ha_url: '',
+      ha_entity_0_id: '',
+      ha_entity_0_label: '',
+      ha_entity_1_id: '',
+      ha_entity_1_label: '',
+      ha_entity_2_id: '',
+      ha_entity_2_label: '',
+
       // version key used for migrations
       settings_version: CURRENT_SETTINGS_VERSION
     };
@@ -125,6 +134,12 @@ function loadPreviousSettings() {
   $('#weather_loc').val(savedSettings.weather_loc);
   $('#weather_loc_lat').val(savedSettings.weather_loc_lat);
   $('#weather_loc_lng').val(savedSettings.weather_loc_lng);
+
+  $('#ha_url').val(savedSettings.ha_url || '');
+  for(var haSlot = 0; haSlot < 3; haSlot++) {
+    $('#ha_entity_' + haSlot + '_id').val(savedSettings['ha_entity_' + haSlot + '_id'] || '');
+    $('#ha_entity_' + haSlot + '_label').val(savedSettings['ha_entity_' + haSlot + '_label'] || '');
+  }
 
   if(savedSettings.weather_setting == 'manual') {
     $('#manual_weather_loc_setting_area').collapse('show');
@@ -182,6 +197,7 @@ $('select').on('change', setFormHasChanges);
 $('#weather_loc').on('input', setFormHasChanges);
 $('#weather_api_key').on('input', setFormHasChanges);
 $('#altclock_name').on('input', setFormHasChanges);
+$('#ha_url, #ha_token, [id^="ha_entity_"]').on('input', setFormHasChanges);
 
 $('#use_large_sidebar_font_setting').on('change', updateSidebarPreview);
 $('#battery_meter_setting').on('change', updateSidebarPreview);
@@ -281,6 +297,12 @@ function showOnlySelectedWidgetSettings() {
   } else {
     $('#widget_sleep_settings').hide();
   }
+
+  if(selections.indexOf('14') != -1 || selections.indexOf('15') != -1 || selections.indexOf('16') != -1) {
+    $('#widget_home_assistant_settings').show();
+  } else {
+    $('#widget_home_assistant_settings').hide();
+  }
 }
 
 
@@ -303,7 +325,13 @@ function widgetsShouldBeCompact() {
       '7' : 44,
       '8' : 63,
       '9' : 31,
-      '10' : 32
+      '10' : 32,
+      '11' : 29,
+      '12' : 40,
+      '13' : 29,
+      '14' : 29,
+      '15' : 29,
+      '16' : 29
     }
   } else {
     widgetHeights = {
@@ -316,7 +344,13 @@ function widgetsShouldBeCompact() {
       '7' : 42,
       '8' : 60,
       '9' : 31,
-      '10' : 32
+      '10' : 32,
+      '11' : 26,
+      '12' : 38,
+      '13' : 26,
+      '14' : 26,
+      '15' : 26,
+      '16' : 26
     }
   }
 
@@ -387,12 +421,19 @@ function updateSidebarPreview() {
       case '13':
         image_url += 'WEATHER_UV_INDEX';
         break;
+      case '14':
+      case '15':
+      case '16':
+        image_url = 'images/sidebar_widgets/' + (useLargeFonts ? 'large_font/' : '') + '14-HOME_ASSISTANT.svg';
+        break;
       case '0':
         image_url += 'NONE';
         break;
     }
 
-    image_url += '.png';
+    if(image_url.slice(-4) !== '.svg') {
+      image_url += '.png';
+    }
 
     $('#widget_' + i + '_preview img').attr("src", image_url);
   }
@@ -579,11 +620,21 @@ function sendSettingsToWatch() {
   config.altclock_name = $('#altclock_name').val();
   config.altclock_offset = $('#altclock_offset_hour option:selected').data('setting');
 
+  config.ha_url = $('#ha_url').val().trim();
+  config.ha_token = $('#ha_token').val().trim();
+  for(var haSlot = 0; haSlot < 3; haSlot++) {
+    config['ha_entity_' + haSlot + '_id'] = $('#ha_entity_' + haSlot + '_id').val().trim();
+    config['ha_entity_' + haSlot + '_label'] = $('#ha_entity_' + haSlot + '_label').val().trim();
+  }
+
   // add the version, in case we need to do more migrations
   config.settings_version = CURRENT_SETTINGS_VERSION;
 
-  // Save the configuration data to localStorage
-  window.localStorage.setItem('savedSettings', JSON.stringify(config));
+  // Save non-sensitive configuration for the next visit. Never retain the
+  // Home Assistant token in the hosted configuration page.
+  var savedConfig = JSON.parse(JSON.stringify(config));
+  delete savedConfig.ha_token;
+  window.localStorage.setItem('savedSettings', JSON.stringify(savedConfig));
 
   // Send the config data to the tracking service for SCIENCE
   // trackSettings(config);

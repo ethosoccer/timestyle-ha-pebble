@@ -1,4 +1,33 @@
 
+<div id="widget_home_assistant_settings">
+  <label>Home Assistant</label><br>
+  <div class="alert alert-info" role="alert">
+    Add up to three Home Assistant entity states to the sidebar. Your URL and
+    long-lived access token are stored locally by the Pebble phone app and are
+    sent only to your Home Assistant instance. Leave a short label blank to
+    show the Home Assistant house icon, or enter up to four characters to
+    replace it with text.
+  </div>
+  <label class="subtle">Home Assistant URL</label>
+  <input type="url" class="form-control" id="ha_url"
+         placeholder="https://homeassistant.example.com">
+  <br>
+  <label class="subtle">Long-lived access token</label>
+  <input type="password" class="form-control" id="ha_token"
+         placeholder="Leave blank to keep the saved token">
+  <br>
+  {% for slot in (0..2) %}
+  <div class="form-group">
+    <label>Entity {{ slot | plus: 1 }}</label>
+    <input type="text" class="form-control" id="ha_entity_{{ slot }}_id"
+           placeholder="sensor.living_room_temperature">
+    <input type="text" class="form-control" id="ha_entity_{{ slot }}_label"
+           maxlength="4" placeholder="Optional label, e.g. ROOM"
+           style="margin-top: 8px">
+  </div>
+  {% endfor %}
+  <hr>
+</div>
 <hr>
 <div id="widget_steps_settings">
   <label>Steps</label><br>
